@@ -19,6 +19,8 @@ pub use classes::ClassNames;
 pub use classes::ElementClasses;
 pub use computed::ComputedStyle;
 pub use computed::UpdateComputedStyle;
+pub use plugin::PeacockPlugin;
+pub use plugin::PeacockSystemSet;
 pub(crate) use selector::Selector;
 pub(crate) use selector_matcher::SelectorMatcher;
 pub use style_handle::ElementStyles;

@@ -8,6 +8,11 @@ use crate::{
 /// Plugin which initializes the Quill library.
 pub struct PeacockPlugin;
 
+/// System set which runs the Peacock style updates. Run this after the UI framework has updated
+/// styles and class names.
+#[derive(SystemSet, Debug, Default, Copy, Clone, Hash, Eq, PartialEq)]
+pub struct PeacockSystemSet;
+
 impl Plugin for PeacockPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PreviousFocus>().add_systems(
@@ -22,7 +27,8 @@ impl Plugin for PeacockPlugin {
                     animate_layout,
                 ),
             )
-                .chain(),
+                .chain()
+                .in_set(PeacockSystemSet),
         );
     }
 }

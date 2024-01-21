@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bevy::a11y::Focus;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::system::SystemParam;
@@ -9,6 +7,8 @@ use bevy_mod_picking::{
     focus::{HoverMap, PreviousHoverMap},
     pointer::PointerId,
 };
+#[cfg(not(feature = "bevy_mod_picking"))]
+use std::marker::PhantomData;
 
 use crate::update::PreviousFocus;
 use crate::{ElementClasses, ElementStyles, Selector};
