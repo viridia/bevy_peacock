@@ -36,6 +36,20 @@ cargo run --example complex
 * Supports CSS-like styling and dynamic visuals.
 * Supports dynamic selectors such as classes, hover states, and focus.
 
+## Getting started
+
+To install Peacock, you need to install the `PeacockPlugin`, and you also need to schedule the
+`PeacockSystemSet` to run after your UI has finished updating all element styles and class names.
+
+```rust
+app.add_systems(
+    Update,
+    my_ui_framework_system.before(PeacockSystemSet),
+)
+.add_plugins(PeacockPlugin)
+.add_plugins(EventListenerPlugin::<ScrollWheel>::default())
+```
+
 ## Examples usages
 
 ## Philosophy
