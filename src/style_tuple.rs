@@ -1,4 +1,5 @@
-use crate::StyleHandle;
+use crate::{ElementStyles, StyleHandle};
+use bevy::ecs::{system::EntityCommands, world::EntityWorldMut};
 use impl_trait_for_tuples::*;
 
 /// `StyleTuple` - a variable-length tuple of [`StyleHandle`]s.
@@ -63,6 +64,32 @@ impl StyleTuple for Tuple {
 
     fn collect(&self, v: &mut Vec<StyleHandle>) {
         for_tuples!( #( self.Tuple.collect(v); )* );
+    }
+}
+
+/// Trait that permits adding a tuple of [`StyleHandle`]s to an object.
+pub trait WithStyles {
+    /// Add a tuple of [`StyleHandle`]s to the object.
+    fn with_styles<S: StyleTuple>(&mut self, styles: S) -> &mut Self;
+}
+
+/// Insert styles using commands.
+impl<'w, 's, 'a> WithStyles for EntityCommands<'w, 's, 'a> {
+    fn with_styles<S: StyleTuple>(&mut self, styles: S) -> &mut Self {
+        self.insert(ElementStyles::new(&styles.to_vec()));
+        self
+    }
+}
+
+/// Update or insert styles into an [`EntityWorldMut`].
+impl<'w> WithStyles for EntityWorldMut<'w> {
+    fn with_styles<S: StyleTuple>(&mut self, styles: S) -> &mut Self {
+        if let Some(mut ec) = self.get_mut::<ElementStyles>() {
+            ec.update(&styles.to_vec());
+        } else {
+            self.insert(ElementStyles::new(&styles.to_vec()));
+        }
+        self
     }
 }
 

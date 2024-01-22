@@ -2,36 +2,33 @@
 
 #![warn(missing_docs)]
 
-mod builder;
+mod animate;
 mod classes;
-mod computed;
-mod cursor;
 mod plugin;
-mod selector;
 mod selector_matcher;
 mod style_handle;
-mod style_props;
 mod style_tuple;
-mod transition;
 pub(crate) mod update;
+mod update_computed;
 
+pub use animate::animate_bg_colors;
+pub use animate::animate_border_colors;
+pub use animate::animate_layout;
+pub use animate::animate_transforms;
+pub use bevy_peacock_style::timing;
+pub use bevy_peacock_style::ComputedStyle;
+pub use bevy_peacock_style::PointerEvents;
+pub(crate) use bevy_peacock_style::Selector;
+pub use bevy_peacock_style::StyleProp;
+pub use bevy_peacock_style::Transition;
+pub use bevy_peacock_style::TransitionProperty;
 pub use classes::ClassNames;
 pub use classes::ElementClasses;
-pub use computed::ComputedStyle;
-pub use computed::UpdateComputedStyle;
 pub use plugin::PeacockPlugin;
 pub use plugin::PeacockSystemSet;
-pub(crate) use selector::Selector;
 pub(crate) use selector_matcher::SelectorMatcher;
 pub use style_handle::ElementStyles;
 pub use style_handle::StyleHandle;
-pub use style_props::PointerEvents;
-pub use style_props::StyleProp;
 pub use style_tuple::StyleTuple;
-pub use transition::animate_bg_colors;
-pub use transition::animate_border_colors;
-pub use transition::animate_layout;
-pub use transition::animate_transforms;
-pub use transition::timing;
-pub use transition::Transition;
-pub use transition::TransitionProperty;
+pub use style_tuple::WithStyles;
+pub use update_computed::UpdateComputedStyle;

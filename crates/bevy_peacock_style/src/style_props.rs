@@ -2,18 +2,14 @@
 
 use bevy::{
     asset::AssetPath,
-    ecs::entity::Entity,
     math::{IVec2, Vec3},
     prelude::*,
     ui,
 };
 
-use crate::cursor::Cursor;
+use crate::{cursor::Cursor, selector::SelectorMatcher, ComputedStyle, StyleBuilder};
 
-use super::{
-    builder::StyleBuilder, computed::ComputedStyle, selector::Selector,
-    selector_matcher::SelectorMatcher, transition::Transition,
-};
+use super::{selector::Selector, transition::Transition};
 
 /// Controls behavior of bevy_mod_picking
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -157,9 +153,16 @@ impl StyleSet {
         }
     }
 
+    pub fn from_builder(builder: StyleBuilder) -> Self {
+        Self {
+            props: builder.props,
+            selectors: builder.selectors,
+        }
+    }
+
     /// Build a StyleSet using a builder callback.
     pub fn build(builder_fn: impl FnOnce(&mut StyleBuilder) -> &mut StyleBuilder) -> Self {
-        let mut builder = StyleBuilder::new();
+        let mut builder = StyleBuilder::default();
         builder_fn(&mut builder);
         Self {
             props: builder.props,
@@ -190,7 +193,7 @@ impl StyleSet {
     pub fn apply_to(
         &self,
         computed: &mut ComputedStyle,
-        matcher: &SelectorMatcher,
+        matcher: &dyn SelectorMatcher,
         entity: &Entity,
     ) {
         // Apply unconditional styles
@@ -204,7 +207,7 @@ impl StyleSet {
         }
     }
 
-    fn apply_attrs_to(&self, attrs: &[StyleProp], computed: &mut ComputedStyle) {
+    pub fn apply_attrs_to(&self, attrs: &[StyleProp], computed: &mut ComputedStyle) {
         for attr in attrs.iter() {
             match attr {
                 StyleProp::BackgroundImage(image) => {

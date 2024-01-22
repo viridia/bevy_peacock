@@ -231,3 +231,9 @@ impl<'w, 's> SelectorMatcher<'w, 's> {
         }
     }
 }
+
+impl bevy_peacock_style::SelectorMatcher for SelectorMatcher<'_, '_> {
+    fn selector_match(&self, selector: &Selector, entity: &Entity) -> bool {
+        SelectorMatcher::selector_match(self, selector, entity)
+    }
+}

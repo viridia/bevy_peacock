@@ -1,3 +1,4 @@
+use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 // use bevy::utils::all_tuples;
 use bevy::utils::HashSet;
@@ -9,6 +10,11 @@ use impl_trait_for_tuples::*;
 pub struct ElementClasses(pub HashSet<String>);
 
 impl ElementClasses {
+    /// Construct a new [`ElementClasses`] component from a tuple of class names.
+    pub fn new<'a, C: ClassNames<'a>>(classes: C) -> Self {
+        Self(classes.to_set())
+    }
+
     /// Add a classname to this element. Be careful using this method with `.class_names()`,
     /// because the latter will overwrite any changes you make with this method.
     pub fn add_class(&mut self, cls: &str) {
@@ -171,6 +177,32 @@ impl<'a> ClassNames<'a> for Tuple {
         for_tuples!( #(
             self.Tuple.add_classes(classes);
         )* );
+    }
+}
+
+/// Trait that permits adding a tuple of [`ClassName`]s to an object.
+pub trait WithClasses {
+    /// Add a tuple of [`StyleHandle`]s to the object.
+    fn class_names<'a, C: ClassNames<'a>>(&mut self, classes: C) -> &mut Self;
+}
+
+/// Insert class names using commands.
+impl<'w, 's, 'a> WithClasses for EntityCommands<'w, 's, 'a> {
+    fn class_names<'c, C: ClassNames<'c>>(&mut self, classes: C) -> &mut Self {
+        self.insert(ElementClasses(classes.to_set()));
+        self
+    }
+}
+
+/// Update or insert class names into an [`EntityWorldMut`].
+impl<'w> WithClasses for EntityWorldMut<'w> {
+    fn class_names<'a, C: ClassNames<'a>>(&mut self, classes: C) -> &mut Self {
+        if let Some(mut ec) = self.get_mut::<ElementClasses>() {
+            ec.0 = classes.to_set();
+        } else {
+            self.insert(ElementClasses(classes.to_set()));
+        }
+        self
     }
 }
 

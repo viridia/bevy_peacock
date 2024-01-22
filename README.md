@@ -3,37 +3,15 @@
 **Peacock** is a styling library for Bevy UI. It provides a way to associate dynamic styles
 with Bevy entities, similar in concept to the familiar Cascading Style Sheets (CSS).
 
-Peacock is not intended to be a drop-in replacement for CSS, and intentionally leaves out
-a number of CSS features. What is left is a carefully curated set of capabilities. The feature
-set of Peacock has been shaped by a number of influences:
-
-* Experience on large-scale projects has shown certain features of CSS tend to produce code
-  that is less maintainable.
-* Certain features of CSS are confusing for novice users.
-* Some features of CSS are less performant than others; in particular, some types of selectors
-  combinations require a backtracking search to evaluate.
-
-Bear in mind that CSS was originally intended to style documents, not user interfaces, and
-it's design reflects this. Styling panels and widgets does not require the kind of complex
-rules needed for rich documents, but it does need a rich set of primitives for dynamic states.
-
-Many other CSS frameworks have come to similar conclusions to the ones listed above; one can
-see in the design of various popular CSS-in-JS frameworks a decision to deliberately constrain
-the power of CSS in order to produce code that is simpler and easier to maintain.
-
-<!-- ## Getting started
-
-For now, you can run the examples. The "complex" example shows off multiple features of the
-library:
-
-```sh
-cargo run --example complex
-``` -->
+Although Peacock is "CSS-like", it is not exactly CSS, as it is designed specifically for styling
+Bevy UI nodes and defines only those properties that are meaninful in that context. It also
+intentionally leaves out a number of CSS features, leaving behind a carefully curated set of
+functionality.
 
 ## Aspirations / guiding principles:
 
 * Works with regular Bevy UI components.
-* Supports CSS-like styling and dynamic visuals.
+* Supports "CSS-like" style properties with dynamic selector expressions.
 * Supports dynamic selectors such as classes, hover states, and focus.
 
 ## Getting started
@@ -50,7 +28,24 @@ app.add_systems(
 .add_plugins(EventListenerPlugin::<ScrollWheel>::default())
 ```
 
+### Enabling Hover
+
+Hovering (The ":hover" selector) is an optional feature which depends on
+[`bevy_mod_picking`](https://github.com/aevyrie/bevy_mod_picking). The feature flag
+`bevy_mod_picking` enables this behavior.
+
 ## Examples usages
+
+TBD
+
+<!-- ## Getting started
+
+For now, you can run the examples. The "complex" example shows off multiple features of the
+library:
+
+```sh
+cargo run --example complex
+``` -->
 
 ## Philosophy
 
@@ -59,8 +54,9 @@ you explicitly create style components (`BackgroundColor`, `Outline` and so on) 
 and pass them in as parameters to the presenter.
 
 A disadvantage of this approach is that you have limited ability to compose styles from different
-sources. Rust has one mechanism for inheriting struct values from another struct, which is the
-`..` syntax; this supposes that both of the struct values are known at the point of declaration.
+sources. Style composition is important because it enables certain kinds of creative workflows,
+as well as a rich ecosystem in which artists and coders can contribute reusable visual elements and
+shared styles without having to tightly coordinate their labor.
 
 Another disadvantage is that any dynamic style properties are strictly the responsibility of the
 widget. Transitory state changes such as "hover" and "focus" require updating the UI tree and
@@ -70,14 +66,37 @@ hover or focus effects unless the widget is designed with hover effects in mind,
 has multiple parts, only the parts which have explicit support for those effects can be dynamically
 styled.
 
-An alternative to inline styles is a rule-based approach. However, the rule-basd cascade of
-CSS is *too* powerful, and can lead to code that is hard to reason about and hard to maintain.
+An alternative to inline styles is a rule-based approach that forms the basis of CSS. However,
+the rule-basd cascade of CSS is *too* powerful, and can lead to code that is hard to reason about
+and hard to maintain.
 
-Peacock is inspired by CSS, but it is not CSS. Styles are currently built either as constants,
-using a fluent syntax, or dynamically inline. A future addition should allow styles
-to be loaded from assets, using a CSS-like syntax, and in fact the data representation of styles
-has been carefully designed to allow for future serialization. Right now, however, the main focus
-is on "editor" use cases, which likely will want styles defined in code anyway.
+Peacock departs from CSS in a number of important ways. The feature set of Peacock has been shaped
+by a number of influences:
+
+* Experience on large-scale web projects has shown that certain features of CSS tend to produce code
+  that is less maintainable.
+* Certain aspects of CSS, particularly the cascade and rule prioritization are confusing for novice
+  users.
+* Some features of CSS are less performant than others; in particular, some types of selector
+  expression combinators require a backtracking search to evaluate.
+
+Bear in mind that CSS was originally intended to style documents, not user interfaces, and
+it's design reflects this. Styling panels and widgets does not require the kind of complex
+rules needed for rich documents, but it does need a rich set of primitives for dynamic states.
+
+Many other CSS frameworks have come to similar conclusions to the ones listed above; one can
+see in the design of various popular CSS-in-JS frameworks a decision to deliberately constrain
+the power of CSS in order to produce code that is simpler and easier to maintain.
+
+In Peacock, styles are Rust objects, called `StyleHandle`s which can be attached to a Bevy UI node.
+More than one style can be assigned to the same node, in which case the style properties are
+algorithmically combined.
+
+`StyleHandle`s are currently built either as constants, using a fluent syntax, or dynamically
+inline. A future addition should allow styles to be loaded from assets, using a CSS-like syntax,
+and the data representation of styles has been carefully designed to allow for future
+serialization. Right now, however, the main focus is on "editor" use cases, which likely will
+want styles defined in code anyway.
 
 `StyleHandles` resemble CSS in the following ways:
 
@@ -105,19 +124,25 @@ However, they also differ from CSS in a number of important ways:
   the state of parent elements, but cannot affect them. This idea is borrowed from
   some popular CSS-in-JS frameworks, which have similar restrictions. The idea is to increase
   maintainability by making styles more deterministic and predictable.
+* There is no support for CSS variables. This may be somewhat surprising because this is a very
+  powerful feature of CSS which makes a lot of other, older CSS features unnecessary. However,
+  it is anticipated that a comprehensive Bevy UI framework will have other ways to implement
+  "inheritable" properties, such as scoped variables or contexts, and there's no need to have two
+  separate ways of inheriting values in the UI hierarchy.
 
 ## Usage
 
 ### Using StyleHandles
 
-`StyleHandle`s are typically created using the `.build()` method, which accepts a closure that takes
-a builder object. The builder methods are flexible in the type of arguments they accept: for
-example, methods such as `.margin_right()` and `.row_gap()` accept an `impl Length`, which can be
-an integer (i32), a float (f32), or a Bevy `ui::Val` object. In the case where no unit is specified,
-pixels is the default unit, so for example `.border(2)` specifies a border width of 2 pixels.
+`StyleHandle`s are typically created in Rust using the `.build()` method, which accepts a closure
+that takes a builder object. The builder methods are flexible in the type of arguments they
+accept: for example, methods such as `.margin_right()` and `.row_gap()` accept an `impl Length`,
+which can be an integer (i32), a float (f32), or a Bevy `ui::Val` object. In the case where
+no unit is specified, pixels is the default unit, so for example `.border(2)` specifies a border
+width of 2 pixels.
 
-Styles are applied to an element using the `.styled()` method, which accepts either a single style,
-or a tuple of styles.
+To attach style handles to a UI node, create a new `ElementStyles` component and insert it into
+the entity.
 
 Here's an example of a widget which changes its border color when hovered:
 

@@ -1,4 +1,5 @@
 #![allow(missing_docs)]
+//! Defines fluent builder for styles.
 
 use bevy::{
     asset::AssetPath,
@@ -8,9 +9,9 @@ use bevy::{
     ui::{self, ZIndex},
 };
 
-use crate::{PointerEvents, StyleProp};
+use crate::{selector_parser, PointerEvents, StyleProp};
 
-use super::{selector::Selector, style_props::SelectorList, transition::Transition};
+use super::{style_props::SelectorList, transition::Transition};
 
 /// Trait that represents a CSS color
 pub trait ColorParam {
@@ -110,19 +111,13 @@ impl<H: LengthParam, V: LengthParam> UiRectParam for (H, V) {
     }
 }
 
+#[derive(Default)]
 pub struct StyleBuilder {
     pub(crate) props: Vec<StyleProp>,
     pub(crate) selectors: SelectorList,
 }
 
 impl StyleBuilder {
-    pub(super) fn new() -> Self {
-        Self {
-            props: Vec::new(),
-            selectors: Vec::new(),
-        }
-    }
-
     pub fn background_image(&mut self, img: Option<AssetPath<'static>>) -> &mut Self {
         self.props.push(StyleProp::BackgroundImage(img));
         self
@@ -511,9 +506,9 @@ impl StyleBuilder {
         mut expr: &str,
         builder_fn: impl FnOnce(&mut StyleBuilder) -> &mut StyleBuilder,
     ) -> &mut Self {
-        let mut builder = StyleBuilder::new();
+        let mut builder = StyleBuilder::default();
         builder_fn(&mut builder);
-        match Selector::parser(&mut expr) {
+        match selector_parser::selector_parser(&mut expr) {
             Ok(selector) => {
                 self.selectors.push((selector, builder.props));
             }
