@@ -41,7 +41,7 @@ Hovering (The ":hover" selector) is an optional feature which depends on
 [`bevy_mod_picking`](https://github.com/aevyrie/bevy_mod_picking). The feature flag
 `bevy_mod_picking` enables this behavior.
 
-## Examples usages
+## Example usages
 
 TBD
 
@@ -57,8 +57,8 @@ cargo run --example complex
 ## Philosophy
 
 There are several different ways to approach styling in Bevy. One is "inline styles", meaning that
-you explicitly create style components (`BackgroundColor`, `Outline` and so on) in the template
-and pass them in as parameters to the presenter.
+you explicitly create style components (`BackgroundColor`, `Outline` and so on) and attach
+them to the UI entity.
 
 A disadvantage of this approach is that you have limited ability to compose styles from different
 sources. Style composition is important because it enables certain kinds of creative workflows,
