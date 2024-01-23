@@ -8,11 +8,18 @@ Bevy UI nodes and defines only those properties that are meaninful in that conte
 intentionally leaves out a number of CSS features, leaving behind a carefully curated set of
 functionality.
 
-## Aspirations / guiding principles:
+## Features:
 
 * Works with regular Bevy UI components.
-* Supports "CSS-like" style properties with dynamic selector expressions.
-* Supports dynamic selectors such as classes, hover states, and focus.
+* "CSS-like" style properties which translate into Bevy component attributes.
+* Multiple ways of defining styles:
+  * In Rust code, using a fluent syntax.
+  * **Planned** import from `.pss` files into Rust code.
+  * **Planned** load as a Bevy asset.
+* Shortcut syntax for many properties, e.g. `.border(10)` is the same as
+  `.border(ui::UiRect::all(ui::Val::Px(10.0)))`
+* Dynamic selectors such as class names, hover states, and focus.
+* Animated transitions with interpolation curves ("easing").
 
 ## Getting started
 
