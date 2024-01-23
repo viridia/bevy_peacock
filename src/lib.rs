@@ -20,6 +20,7 @@ pub use bevy_peacock_style::ComputedStyle;
 pub use bevy_peacock_style::PointerEvents;
 pub(crate) use bevy_peacock_style::Selector;
 pub use bevy_peacock_style::StyleProp;
+pub use bevy_peacock_style::StylePropList;
 pub use bevy_peacock_style::Transition;
 pub use bevy_peacock_style::TransitionProperty;
 pub use classes::ClassNames;
@@ -32,3 +33,5 @@ pub use style_handle::StyleHandle;
 pub use style_tuple::StyleTuple;
 pub use style_tuple::WithStyles;
 pub use update_computed::UpdateComputedStyle;
+
+pub use bevy_peacock_derive::import_stylesheet;

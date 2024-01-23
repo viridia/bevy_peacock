@@ -1,3 +1,9 @@
-main {
-  background_color: #f00,
+MAIN {
+    left: 10;
+    top: 10;
+    bottom: 10;
+    right: 10;
+    border: 2;
+    border_color: #888";
+    display: flex;
 }

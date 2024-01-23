@@ -1,4 +1,4 @@
-use super::style_props::PointerEvents;
+use super::style::PointerEvents;
 use super::transition::Transition;
 use bevy::asset::AssetPath;
 use bevy::prelude::*;

@@ -7,9 +7,9 @@ use bevy::{
     ui,
 };
 
-use crate::{cursor::Cursor, selector::SelectorMatcher, ComputedStyle, StyleBuilder};
-
 use super::{selector::Selector, transition::Transition};
+use crate::{cursor::Cursor, selector::SelectorMatcher, style_parser, ComputedStyle, StyleBuilder};
+use winnow::Parser;
 
 /// Controls behavior of bevy_mod_picking
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -130,12 +130,24 @@ pub enum StyleProp {
     Transition(Vec<Transition>),
 }
 
-pub(crate) type SelectorList = Vec<(Box<Selector>, Vec<StyleProp>)>;
+impl std::str::FromStr for StyleProp {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        style_parser::style_prop_parser
+            .parse(input.trim())
+            .map_err(|e| e.to_string())
+    }
+}
+
+pub(crate) type SelectorEntry = (Box<Selector>, Vec<StyleProp>);
+pub(crate) type SelectorList = Vec<SelectorEntry>;
 
 /// A collection of style attributes which can be merged to create a `ComputedStyle`.
 #[derive(Debug, Default, Clone)]
-pub struct StyleSet {
+pub struct StylePropList {
     /// List of style attributes.
+    ///
     /// Rather than storing the attributes in a struct full of optional fields, we store a flat
     /// vector of enums, each of which stores a single style attribute. This "sparse" representation
     /// allows for fast merging of styles, particularly for styles which have few or no attributes.
@@ -145,7 +157,7 @@ pub struct StyleSet {
     pub(crate) selectors: SelectorList,
 }
 
-impl StyleSet {
+impl StylePropList {
     pub fn new() -> Self {
         Self {
             props: Vec::new(),
@@ -160,13 +172,20 @@ impl StyleSet {
         }
     }
 
-    /// Build a StyleSet using a builder callback.
+    /// Build a [`StylePropList`] using a builder callback.
     pub fn build(builder_fn: impl FnOnce(&mut StyleBuilder) -> &mut StyleBuilder) -> Self {
         let mut builder = StyleBuilder::default();
         builder_fn(&mut builder);
         Self {
             props: builder.props,
             selectors: builder.selectors,
+        }
+    }
+
+    pub fn with_props(&mut self, props: &[StyleProp]) -> Self {
+        Self {
+            props: Vec::from(props),
+            selectors: Vec::new(),
         }
     }
 

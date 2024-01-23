@@ -1,9 +1,11 @@
 //! Example of a simple UI layout
 
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 use bevy_peacock::*;
+use std::f32::consts::PI;
+
+include!("./styles_compiled.pss");
+import_stylesheet!("./styles.pss");
 
 fn main() {
     App::new()
@@ -21,20 +23,6 @@ struct Shape;
 
 const X_EXTENT: f32 = 14.5;
 
-// struct ButtonStyles {
-//     default: StyleHandle,
-// }
-
-// impl ButtonStyles {
-//     pub fn new() -> Self {
-//         Self {
-//             default: StyleHandle::build(|b| b.background_color(Color::DARK_GRAY)),
-//         }
-//     }
-// }
-
-// const BUTTON_STYLES: ButtonStyles = ButtonStyles::new();
-
 fn setup_view_root(mut commands: Commands) {
     commands
         .spawn((NodeBundle {
@@ -47,7 +35,7 @@ fn setup_view_root(mut commands: Commands) {
             },
             ..Default::default()
         },))
-        // .with_styles(BUTTON_STYLES.default)
+        .with_styles(styles_compiled::MAIN.clone())
         .with_children(|parent| {
             parent.spawn(TextBundle::from_section(
                 "Text Example",

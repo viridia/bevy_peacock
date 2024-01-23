@@ -11,7 +11,7 @@ use bevy::{
 
 use crate::{selector_parser, PointerEvents, StyleProp};
 
-use super::{style_props::SelectorList, transition::Transition};
+use super::{style::SelectorList, transition::Transition};
 
 /// Trait that represents a CSS color
 pub trait ColorParam {

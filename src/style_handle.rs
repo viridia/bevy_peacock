@@ -3,20 +3,25 @@
 use crate::SelectorMatcher;
 
 use bevy::prelude::*;
-use bevy_peacock_style::{ComputedStyle, StyleBuilder, StyleSet};
+use bevy_peacock_style::{ComputedStyle, StyleBuilder, StylePropList};
 use std::sync::Arc;
 
 /// A sharable reference to a collection of UI style properties.
 #[derive(Clone, Default)]
-pub struct StyleHandle(pub Arc<StyleSet>);
+pub struct StyleHandle(pub Arc<StylePropList>);
 
 /// Handle which maintains a shared reference to a set of styles and selectors.
 impl StyleHandle {
-    /// Build a StyleSet using a builder callback.
+    /// Build a [`StylePropList`] from a list of properties.
+    pub fn new(props: StylePropList) -> Self {
+        Self(Arc::new(props))
+    }
+
+    /// Build a [`StylePropList`] using a builder callback.
     pub fn build(builder_fn: impl FnOnce(&mut StyleBuilder) -> &mut StyleBuilder) -> Self {
         let mut builder = StyleBuilder::default();
         builder_fn(&mut builder);
-        Self(Arc::new(StyleSet::from_builder(builder)))
+        Self(Arc::new(StylePropList::from_builder(builder)))
     }
 
     /// Merge the style properties into a computed `Style` object.
