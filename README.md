@@ -10,7 +10,7 @@ functionality.
 
 ## Features:
 
-* Works with regular Bevy UI components.
+* Works with regular Bevy UI components, and is framework-agnostic.
 * "CSS-like" style properties which translate into Bevy component attributes.
 * Multiple ways of defining styles:
   * In Rust code, using a fluent syntax.
