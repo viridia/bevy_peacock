@@ -14,8 +14,8 @@ functionality.
 * "CSS-like" style properties which translate into Bevy component attributes.
 * Multiple ways of defining styles:
   * In Rust code, using a fluent syntax.
-  * **Planned** import from `.pss` files into Rust code.
-  * **Planned** load as a Bevy asset.
+  * (**Planned**) import `.pss` files directly into Rust code.
+  * (**Planned**) load as a Bevy asset.
 * Shortcut syntax for many properties, e.g. `.border(10)` is the same as
   `.border(ui::UiRect::all(ui::Val::Px(10.0)))`
 * Dynamic selectors such as class names, hover states, and focus.
