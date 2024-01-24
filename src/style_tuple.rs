@@ -42,6 +42,16 @@ impl StyleTuple for StyleHandle {
     }
 }
 
+impl StyleTuple for &StyleHandle {
+    fn len(&self) -> usize {
+        1
+    }
+
+    fn collect(&self, v: &mut Vec<StyleHandle>) {
+        v.push((*self).clone());
+    }
+}
+
 impl StyleTuple for Option<StyleHandle> {
     fn len(&self) -> usize {
         1

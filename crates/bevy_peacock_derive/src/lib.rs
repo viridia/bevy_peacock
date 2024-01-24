@@ -3,7 +3,10 @@ use bevy::{render::color::Color, ui};
 use bevy_peacock_style::{parse_stylesheet, SelectorEntry, StyleProp, StylePropList};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use std::{env, path::Path};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 use syn::{
     parse::{Parse, ParseStream, Result},
     parse_macro_input, Ident, LitStr, Token,
@@ -26,7 +29,9 @@ impl Parse for StylesheetInput {
     }
 }
 
-fn import_stylesheet_from_path(path_str: &String) -> anyhow::Result<Vec<(String, StylePropList)>> {
+fn import_stylesheet_from_path(
+    path_str: &String,
+) -> anyhow::Result<(PathBuf, Vec<(String, StylePropList)>)> {
     let manifest_dir_env =
         env::var_os("CARGO_MANIFEST_DIR").context("CARGO_MANIFEST_DIR env var not found")?;
     let manifest_path = Path::new(&manifest_dir_env);
@@ -46,10 +51,14 @@ fn import_stylesheet_from_path(path_str: &String) -> anyhow::Result<Vec<(String,
         }
     };
 
-    Ok(stylesheet)
+    Ok((file_path, stylesheet))
 }
 
-fn format_stylesheet_src(mod_name: &String, stylesheet: &[(String, StylePropList)]) -> TokenStream {
+fn format_stylesheet_src(
+    mod_name: &String,
+    file_path: &Path,
+    stylesheet: &[(String, StylePropList)],
+) -> TokenStream {
     let mod_name = format_ident!("{}", mod_name);
     let rules = stylesheet.iter().map(|(name, style)| {
         let name = format_ident!("{}", name);
@@ -59,13 +68,14 @@ fn format_stylesheet_src(mod_name: &String, stylesheet: &[(String, StylePropList
             pub static #name: StyleHandle = StyleHandle::new(#style);
         }
     });
+    let path = file_path.to_str().unwrap();
     let output = quote! {
         mod #mod_name {
             use static_init::dynamic;
             use bevy_peacock::{StyleHandle, StyleProp, StylePropList};
             use bevy::{render::color::Color, ui};
             #[allow(dead_code)]
-
+            const _: &str = include_str!(#path);
             #( #rules )*
         }
     };
@@ -82,7 +92,9 @@ fn format_stylesheet_src(mod_name: &String, stylesheet: &[(String, StylePropList
 pub fn import_stylesheet(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as StylesheetInput);
     match import_stylesheet_from_path(&input.path) {
-        Ok(stylesheet) => format_stylesheet_src(&input.mod_name.to_string(), &stylesheet),
+        Ok((file_path, stylesheet)) => {
+            format_stylesheet_src(&input.mod_name.to_string(), &file_path, &stylesheet)
+        }
         Err(err) => syn::Error::new_spanned(&input.mod_name, err.to_string())
             .to_compile_error()
             .into(),

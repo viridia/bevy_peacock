@@ -23,7 +23,7 @@ SIDE {
 BUTTON {
     display: flex;
     border: 3;
-    border_color: #0000ff;
+    border_color: #00ffff;
     flex_direction: row;
     height: 32;
     padding: 0 12;
