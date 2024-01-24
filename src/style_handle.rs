@@ -2,7 +2,7 @@
 
 use crate::SelectorMatcher;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use bevy_peacock_style::{ComputedStyle, StyleBuilder, StylePropList};
 use std::sync::Arc;
 
@@ -56,6 +56,9 @@ impl PartialEq for StyleHandle {
         Arc::as_ptr(&self.0) == Arc::as_ptr(&other.0)
     }
 }
+
+/// A stylesheet is a collection of [`StyleHandle`]s, indexed by name.
+pub type StyleSheet = HashMap<String, StyleHandle>;
 
 /// List of [`StyleHandle`]s which are attached to a given UiNode.
 #[derive(Component, Default)]

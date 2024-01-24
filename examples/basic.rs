@@ -4,8 +4,7 @@ use bevy::prelude::*;
 use bevy_peacock::*;
 use std::f32::consts::PI;
 
-include!("./styles_compiled.pss");
-import_stylesheet!("./styles.pss");
+import_stylesheet!(test_styles, "examples/styles.pss");
 
 fn main() {
     App::new()
@@ -25,22 +24,42 @@ const X_EXTENT: f32 = 14.5;
 
 fn setup_view_root(mut commands: Commands) {
     commands
-        .spawn((NodeBundle {
-            style: Style {
-                display: Display::Flex,
-                flex_direction: FlexDirection::Row,
-                border: UiRect::all(Val::Px(3.)),
-                padding: UiRect::all(Val::Px(3.)),
-                ..Default::default()
-            },
-            ..Default::default()
-        },))
-        .with_styles(styles_compiled::MAIN.clone())
+        .spawn(NodeBundle::default())
+        .with_styles(test_styles::ROOT.clone())
         .with_children(|parent| {
-            parent.spawn(TextBundle::from_section(
-                "Text Example",
-                TextStyle::default(),
-            ));
+            parent
+                .spawn(NodeBundle::default())
+                .with_styles(test_styles::SIDE.clone())
+                .with_children(|parent| {
+                    parent
+                        .spawn(NodeBundle::default())
+                        .with_styles(test_styles::BUTTON.clone())
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section("Button1", TextStyle::default()));
+                        });
+                    parent
+                        .spawn(NodeBundle::default())
+                        .with_styles(test_styles::BUTTON.clone())
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section("Button2", TextStyle::default()));
+                        });
+                    parent
+                        .spawn(NodeBundle::default())
+                        .with_styles(test_styles::BUTTON.clone())
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section("Button3", TextStyle::default()));
+                        });
+                });
+
+            parent
+                .spawn(NodeBundle::default())
+                .with_styles(test_styles::MAIN.clone())
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Text Example",
+                        TextStyle::default(),
+                    ));
+                });
         });
 }
 

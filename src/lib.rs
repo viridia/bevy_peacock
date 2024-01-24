@@ -30,6 +30,7 @@ pub use plugin::PeacockSystemSet;
 pub(crate) use selector_matcher::SelectorMatcher;
 pub use style_handle::ElementStyles;
 pub use style_handle::StyleHandle;
+pub use style_handle::StyleSheet;
 pub use style_tuple::StyleTuple;
 pub use style_tuple::WithStyles;
 pub use update_computed::UpdateComputedStyle;

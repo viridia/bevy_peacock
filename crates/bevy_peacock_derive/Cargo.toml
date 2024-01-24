@@ -7,7 +7,9 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
+anyhow = "1.0.79"
 bevy = "0.12.1"
 bevy_peacock_style = { path = "../bevy_peacock_style" }
 proc-macro2 = "1.0.78"
 quote = "1.0.35"
+syn = "2.0.48"

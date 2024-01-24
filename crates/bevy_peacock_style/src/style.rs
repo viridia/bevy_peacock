@@ -8,8 +8,7 @@ use bevy::{
 };
 
 use super::{selector::Selector, transition::Transition};
-use crate::{cursor::Cursor, selector::SelectorMatcher, style_parser, ComputedStyle, StyleBuilder};
-use winnow::Parser;
+use crate::{cursor::Cursor, selector::SelectorMatcher, ComputedStyle, StyleBuilder};
 
 /// Controls behavior of bevy_mod_picking
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -130,18 +129,7 @@ pub enum StyleProp {
     Transition(Vec<Transition>),
 }
 
-impl std::str::FromStr for StyleProp {
-    type Err = String;
-
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        style_parser::style_prop_parser
-            .parse(input.trim())
-            .map_err(|e| e.to_string())
-    }
-}
-
-pub(crate) type SelectorEntry = (Box<Selector>, Vec<StyleProp>);
-pub(crate) type SelectorList = Vec<SelectorEntry>;
+pub type SelectorEntry = (Box<Selector>, Vec<StyleProp>);
 
 /// A collection of style attributes which can be merged to create a `ComputedStyle`.
 #[derive(Debug, Default, Clone)]
@@ -154,7 +142,7 @@ pub struct StylePropList {
     pub(crate) props: Vec<StyleProp>,
 
     /// List of conditional styles
-    pub(crate) selectors: SelectorList,
+    pub(crate) selectors: Vec<SelectorEntry>,
 }
 
 impl StylePropList {
@@ -172,6 +160,10 @@ impl StylePropList {
         }
     }
 
+    pub fn from_raw(props: Vec<StyleProp>, selectors: Vec<SelectorEntry>) -> Self {
+        Self { props, selectors }
+    }
+
     /// Build a [`StylePropList`] using a builder callback.
     pub fn build(builder_fn: impl FnOnce(&mut StyleBuilder) -> &mut StyleBuilder) -> Self {
         let mut builder = StyleBuilder::default();
@@ -187,6 +179,14 @@ impl StylePropList {
             props: Vec::from(props),
             selectors: Vec::new(),
         }
+    }
+
+    pub fn get_props(&self) -> &[StyleProp] {
+        self.props.as_slice()
+    }
+
+    pub fn get_selectors(&self) -> &[SelectorEntry] {
+        self.selectors.as_slice()
     }
 
     /// Return the number of UiNode levels referenced by selectors.

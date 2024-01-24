@@ -9,9 +9,9 @@ use bevy::{
     ui::{self, ZIndex},
 };
 
-use crate::{selector_parser, PointerEvents, StyleProp};
+use crate::{selector_parser, style::SelectorEntry, PointerEvents, StyleProp};
 
-use super::{style::SelectorList, transition::Transition};
+use super::transition::Transition;
 
 /// Trait that represents a CSS color
 pub trait ColorParam {
@@ -114,7 +114,7 @@ impl<H: LengthParam, V: LengthParam> UiRectParam for (H, V) {
 #[derive(Default)]
 pub struct StyleBuilder {
     pub(crate) props: Vec<StyleProp>,
-    pub(crate) selectors: SelectorList,
+    pub(crate) selectors: Vec<SelectorEntry>,
 }
 
 impl StyleBuilder {
