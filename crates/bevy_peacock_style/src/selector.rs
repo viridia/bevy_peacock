@@ -125,6 +125,14 @@ impl Selector {
                 .unwrap_or(false),
         }
     }
+
+    /// Parse a selector from a string.
+    pub fn parse(input: &str) -> Result<Self, String> {
+        selector_parser::selector_parser
+            .parse(input.trim())
+            .map(|a| *a)
+            .map_err(|e| e.to_string())
+    }
 }
 
 impl std::str::FromStr for Selector {

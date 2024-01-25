@@ -18,7 +18,7 @@ pub use animate::animate_transforms;
 pub use bevy_peacock_style::timing;
 pub use bevy_peacock_style::ComputedStyle;
 pub use bevy_peacock_style::PointerEvents;
-pub(crate) use bevy_peacock_style::Selector;
+pub use bevy_peacock_style::Selector;
 pub use bevy_peacock_style::StyleProp;
 pub use bevy_peacock_style::StylePropList;
 pub use bevy_peacock_style::Transition;

@@ -20,6 +20,7 @@ SIDE {
     flex_direction: column;
 }
 
+// Button style
 BUTTON {
     display: flex;
     border: 3;
@@ -28,6 +29,10 @@ BUTTON {
     height: 32;
     padding: 0 12;
     align_items: center;
+
+    :hover {
+        background_color: #ff0;
+    }
 }
 
 MAIN {

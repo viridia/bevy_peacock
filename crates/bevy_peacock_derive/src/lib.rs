@@ -1,6 +1,6 @@
 use anyhow::Context as _;
 use bevy::{render::color::Color, ui};
-use bevy_peacock_style::{parse_stylesheet, SelectorEntry, StyleProp, StylePropList};
+use bevy_peacock_style::{parse_stylesheet, Selector, SelectorEntry, StyleProp, StylePropList};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use std::{
@@ -72,7 +72,7 @@ fn format_stylesheet_src(
     let output = quote! {
         mod #mod_name {
             use static_init::dynamic;
-            use bevy_peacock::{StyleHandle, StyleProp, StylePropList};
+            use bevy_peacock::{StyleHandle, StyleProp, StylePropList, Selector};
             use bevy::{render::color::Color, ui};
             #[allow(dead_code)]
             const _: &str = include_str!(#path);
@@ -105,6 +105,17 @@ trait ToSrc {
     fn to_src(&self) -> proc_macro2::TokenStream;
 }
 
+impl ToSrc for SelectorEntry {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        let (selector, props) = self;
+        let selector = selector.to_src();
+        let props = props.iter().map(|prop| prop.to_src()).collect::<Vec<_>>();
+        quote! {
+            (Box::new(Selector::parse(#selector).unwrap()), vec![#( #props ),*])
+        }
+    }
+}
+
 impl ToSrc for StylePropList {
     fn to_src(&self) -> proc_macro2::TokenStream {
         let props = self
@@ -112,13 +123,23 @@ impl ToSrc for StylePropList {
             .iter()
             .map(|prop| prop.to_src())
             .collect::<Vec<_>>();
-        let selectors: Vec<SelectorEntry> = Vec::new();
+        let selectors = self
+            .get_selectors()
+            .iter()
+            .map(|selector| selector.to_src());
         quote! {
             StylePropList::from_raw(
                 vec![#( #props ),*],
-                Vec::new(),
+                vec![#( #selectors ),*],
             )
         }
+    }
+}
+
+impl ToSrc for Selector {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        let s = format!("{}", self);
+        quote! {#s}
     }
 }
 

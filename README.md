@@ -37,9 +37,9 @@ app.add_systems(
 
 ### Enabling Hover
 
-Hovering (The ":hover" selector) is an optional feature which depends on
+Hovering (The ":hover" selector) is an optional feature which requires
 [`bevy_mod_picking`](https://github.com/aevyrie/bevy_mod_picking). The feature flag
-`bevy_mod_picking` enables this behavior.
+`bevy_mod_picking` enables this behavior and the dependency.
 
 ## Example usages
 

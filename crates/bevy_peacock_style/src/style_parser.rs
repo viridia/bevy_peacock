@@ -1,14 +1,14 @@
 use bevy::{render::color::Color, ui};
 use winnow::{
-    ascii::multispace0,
+    ascii::{escaped_transform, multispace0},
     ascii::{float, space1},
-    combinator::{alt, cut_err, eof, opt, preceded, repeat, separated, terminated},
+    combinator::{alt, cut_err, delimited, eof, opt, preceded, repeat, separated, terminated},
     error::{
-        ContextError, ErrMode, ErrorKind, FromExternalError, ParseError, ParserError, StrContext,
+        ContextError, ErrMode, ErrorKind, FromExternalError, ParseError, StrContext,
         StrContextValue,
     },
     stream::AsChar,
-    token::{one_of, take_while},
+    token::{none_of, one_of, take_while},
     PResult, Parser,
 };
 
@@ -20,17 +20,6 @@ pub(crate) enum StyleParsingError {
     InvalidPropertyName(String),
     InvalidPropertyType(String),
     InvalidPropertyValue(String),
-}
-
-impl ParserError<&str> for StyleParsingError {
-    fn from_error_kind(_input: &&str, _kind: ErrorKind) -> Self {
-        // CustomError::Nom(input.clone(), kind)
-        todo!()
-    }
-
-    fn append(self, _: &&str, _: ErrorKind) -> Self {
-        todo!()
-    }
 }
 
 impl std::fmt::Display for StyleParsingError {
@@ -54,12 +43,13 @@ impl std::error::Error for StyleParsingError {}
 enum PropValue<'s> {
     Ident(&'s str),
     Number(f32),
-    String(&'s str),
+    String(String),
     Length(ui::Val),
     List(Vec<PropValue<'s>>),
     Color(Color),
 }
 
+#[derive(Debug)]
 enum StylePropOrSelector {
     StyleProp(StyleProp),
     Selector(SelectorEntry),
@@ -78,6 +68,17 @@ impl<'s> PropValue<'s> {
     }
 }
 
+fn whitespace(input: &mut &str) -> PResult<()> {
+    repeat(
+        ..,
+        alt((
+            ("//", take_while(0.., |c| c != '\r' && c != '\n')).void(),
+            one_of(['\n', '\r', '\t', ' ']).void(),
+        )),
+    )
+    .parse_next(input)
+}
+
 fn prop_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
     (
         one_of(AsChar::is_alpha),
@@ -94,6 +95,21 @@ fn ident<'s>(input: &mut &'s str) -> PResult<PropValue<'s>> {
     )
         .recognize()
         .map(|cls: &str| PropValue::Ident(cls))
+        .parse_next(input)
+}
+
+fn string_chars(input: &mut &str) -> PResult<String> {
+    escaped_transform(
+        none_of(['"', '\\']).recognize(),
+        '\\',
+        alt(("\\".value("\\"), "\"".value("\""), "n".value("\n"))),
+    )
+    .parse_next(input)
+}
+
+fn string<'s>(input: &mut &'s str) -> PResult<PropValue<'s>> {
+    (delimited('"', string_chars, '"'))
+        .map(PropValue::String)
         .parse_next(input)
 }
 
@@ -244,24 +260,31 @@ fn create_prop(name: &str, value: &PropValue) -> Result<StyleProp, StyleParsingE
     }
 }
 
-fn style_prop(input: &mut &str) -> PResult<StyleProp> {
-    let (name, _, _, (_, value, _, _, _)) = (
+fn style_prop_inner(input: &mut &str) -> PResult<StyleProp> {
+    let (name, _, _, _, value, _, _) = (
         prop_name,
         multispace0,
         ':',
-        cut_err((
-            multispace0,
-            alt((color, ident, length_list, length)).context(StrContext::Label("property value")),
-            multispace0,
+        multispace0,
+        alt((color, ident, length_list, length, string))
+            .context(StrContext::Label("property value")),
+        multispace0,
+        cut_err(
             ';'.context(StrContext::Expected(StrContextValue::Description(
                 "semicolon",
             ))),
-            multispace0,
-        )),
+        ),
     )
         .parse_next(input)?;
+
     create_prop(name, &value)
-        .map_err(|err| ErrMode::from_external_error(input, ErrorKind::Fail, err))
+        .map_err(|err| ErrMode::from_external_error(input, ErrorKind::Fail, err).cut())
+}
+
+fn style_prop(input: &mut &str) -> PResult<StyleProp> {
+    (style_prop_inner, whitespace)
+        .map(|(prop, _)| Ok(prop))
+        .parse_next(input)?
 }
 
 fn selector_prop_list_items(input: &mut &str) -> PResult<Vec<StyleProp>> {
@@ -271,9 +294,9 @@ fn selector_prop_list_items(input: &mut &str) -> PResult<Vec<StyleProp>> {
 fn selector(input: &mut &str) -> PResult<SelectorEntry> {
     (
         selector_parser::selector_parser,
-        multispace0,
+        whitespace,
         '{',
-        cut_err((multispace0, selector_prop_list_items, '}', multispace0)),
+        cut_err((whitespace, selector_prop_list_items, '}', whitespace)),
     )
         .map(|(sel, _, _, (_, props, _, _))| (sel, props))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -296,9 +319,9 @@ fn style_prop_list_items(input: &mut &str) -> PResult<Vec<StylePropOrSelector>> 
 fn style_prop_list(input: &mut &str) -> PResult<(String, StylePropList)> {
     (
         ident.context(StrContext::Label("style name")).recognize(),
-        multispace0,
+        whitespace,
         '{',
-        cut_err((multispace0, style_prop_list_items, '}')),
+        cut_err((whitespace, style_prop_list_items, '}')),
     )
         .map(|(name, _, _, (_, mut items, _))| {
             let mut props: Vec<StyleProp> = Vec::new();
@@ -320,13 +343,10 @@ fn style_prop_list(input: &mut &str) -> PResult<(String, StylePropList)> {
 
 fn stylesheet(input: &mut &str) -> PResult<Vec<(String, StylePropList)>> {
     (
-        repeat(.., (multispace0, style_prop_list).map(|(_, l)| l)),
-        multispace0,
+        repeat(.., (whitespace, style_prop_list).map(|(_, l)| l)),
+        whitespace,
         eof,
     )
-        // .context(StrContext::Expected(StrContextValue::Description(
-        //     "stylesheet",
-        // )))
         .map(|(entries, _, _)| entries)
         .parse_next(input)
 }
@@ -599,6 +619,7 @@ mod tests {
 
     use super::*;
 
+    #[track_caller]
     fn run_parser<'s, T>(mut parser: impl Parser<&'s str, T, ContextError>, input: &'s str) -> T {
         match parser.parse(input) {
             Ok(val) => val,
@@ -608,6 +629,7 @@ mod tests {
         }
     }
 
+    #[track_caller]
     fn run_parser_err<'s, T>(
         mut parser: impl Parser<&'s str, T, ContextError>,
         input: &'s str,
@@ -620,21 +642,21 @@ mod tests {
 
     #[test]
     fn test_style_invalid_prop() {
-        let err = run_parser_err(style_prop, "foo: #fff");
+        let err = run_parser_err(style_prop, "foo: #fff;");
         assert!(err.contains("invalid property name:"));
         assert!(err.contains("foo: #fff"));
     }
 
     #[test]
     fn test_style_invalid_prop_value() {
-        let err = run_parser_err(style_prop, "background_color: 1");
+        let err = run_parser_err(style_prop, "background_color: 1;");
         assert!(err.contains("invalid property type:"));
         assert!(err.contains("background_color:"));
     }
 
     #[test]
     fn test_parse_color() {
-        let result = run_parser(style_prop, "background_color: #fff");
+        let result = run_parser(style_prop, "background_color: #fff;");
         match result {
             StyleProp::BackgroundColor(Some(color)) => {
                 assert_eq!(color, Color::rgb(1.0, 1.0, 1.0));
@@ -642,7 +664,7 @@ mod tests {
             _ => panic!("incorrect result: {:?}", result),
         }
 
-        let result = run_parser(style_prop, "background_color: rgb(1, 1, 1)");
+        let result = run_parser(style_prop, "background_color: rgb(1, 1, 1);");
         match result {
             StyleProp::BackgroundColor(Some(color)) => {
                 assert_eq!(color, Color::rgb(1.0, 1.0, 1.0));
@@ -653,7 +675,7 @@ mod tests {
 
     #[test]
     fn test_style_parser_background_color() {
-        let result = run_parser(style_prop, "background_color: #fff");
+        let result = run_parser(style_prop, "background_color: #fff;");
         match result {
             StyleProp::BackgroundColor(Some(color)) => {
                 assert_eq!(color, Color::rgb(1.0, 1.0, 1.0));
@@ -664,7 +686,7 @@ mod tests {
 
     #[test]
     fn test_style_parser_length() {
-        let result = run_parser(style_prop, "width: 10");
+        let result = run_parser(style_prop, "width: 10;");
         match result {
             StyleProp::Width(val) => {
                 assert_eq!(val, ui::Val::Px(10.0));
@@ -672,7 +694,7 @@ mod tests {
             _ => panic!("incorrect result: {:?}", result),
         }
 
-        let result = run_parser(style_prop, "width: 10px");
+        let result = run_parser(style_prop, "width: 10px;");
         match result {
             StyleProp::Width(val) => {
                 assert_eq!(val, ui::Val::Px(10.0));
@@ -680,7 +702,7 @@ mod tests {
             _ => panic!("incorrect result: {:?}", result),
         }
 
-        let result = run_parser(style_prop, "width: 10%");
+        let result = run_parser(style_prop, "width: 10%;");
         match result {
             StyleProp::Width(val) => {
                 assert_eq!(val, ui::Val::Percent(10.0));
@@ -688,7 +710,7 @@ mod tests {
             _ => panic!("incorrect result: {:?}", result),
         }
 
-        let result = run_parser(style_prop, "width: 10vh");
+        let result = run_parser(style_prop, "width: 10vh;");
         match result {
             StyleProp::Width(val) => {
                 assert_eq!(val, ui::Val::Vh(10.0));
@@ -696,7 +718,7 @@ mod tests {
             _ => panic!("incorrect result: {:?}", result),
         }
 
-        let result = run_parser(style_prop, "width: auto");
+        let result = run_parser(style_prop, "width: auto;");
         match result {
             StyleProp::Width(val) => {
                 assert_eq!(val, ui::Val::Auto);
@@ -781,42 +803,68 @@ mod tests {
     }
 
     #[test]
-    fn test_stylesheet_parser_err_bad_prop() {
+    fn test_stylesheet_comment() {
         let result = run_parser(
+            stylesheet,
+            "
+            // Comment1
+            MAIN {
+                // Comment2
+                width: 10px;
+
+                // Comment3
+                height: 10px;
+             }
+
+             // Comment4
+             SIDE {
+                width: 10px;
+                height: 10px;
+             }  ",
+        );
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_stylesheet_parser_err_bad_prop() {
+        let err = run_parser_err(
             stylesheet,
             "MAIN {
                 bad: 10px;
                 height: 10px;
              }",
         );
-        assert_eq!(result.len(), 1);
+        assert!(err.contains("invalid property name: 'bad'"), "{err}");
     }
 
     #[test]
     fn test_stylesheet_parser_err_bad_value() {
-        let result = run_parser(
+        let err = run_parser_err(
             stylesheet,
             "MAIN {
                 height: #fff;
              }",
         );
-        assert_eq!(result.len(), 1);
+        assert!(err.contains("invalid property type: color"), "{err}");
     }
 
     #[test]
     fn test_stylesheet_parser_err_bad_value2() {
-        let result = run_parser(
+        let err = run_parser_err(
             stylesheet,
             "MAIN {
                 color: #fff#;
              }",
         );
-        assert_eq!(result.len(), 1);
+        assert!(err.contains("expected semicolon"), "{err}");
     }
 
     #[test]
     fn test_stylesheet_parser_err_bad_prop2() {
-        let result = run_parser(style_prop_list_items, "colorr: fff;");
-        assert_eq!(result.len(), 1);
+        let err = run_parser_err(style_prop, "colorr: fff;");
+        assert!(err.contains("invalid property name:"), "{err}");
+
+        let result = run_parser_err(style_prop_list_items, "colorr: fff;");
+        assert!(result.contains("invalid property name:"), "{err}");
     }
 }
