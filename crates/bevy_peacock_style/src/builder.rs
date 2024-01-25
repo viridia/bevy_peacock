@@ -61,18 +61,18 @@ impl LengthParam for i32 {
 
 /// Trait that represents a CSS Z-index
 pub trait ZIndexParam {
-    fn to_val(self) -> Option<ZIndex>;
+    fn to_val(self) -> ZIndex;
 }
 
 impl ZIndexParam for ZIndex {
-    fn to_val(self) -> Option<ZIndex> {
-        Some(self)
+    fn to_val(self) -> ZIndex {
+        self
     }
 }
 
 impl ZIndexParam for i32 {
-    fn to_val(self) -> Option<ZIndex> {
-        Some(ZIndex::Local(self))
+    fn to_val(self) -> ZIndex {
+        ZIndex::Local(self)
     }
 }
 

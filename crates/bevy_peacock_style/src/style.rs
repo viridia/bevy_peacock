@@ -28,7 +28,7 @@ pub enum StyleProp {
     BorderColor(Option<Color>),
     Color(Option<Color>),
 
-    ZIndex(Option<ui::ZIndex>),
+    ZIndex(ui::ZIndex),
 
     Display(ui::Display),
     Position(ui::PositionType),

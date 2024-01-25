@@ -206,12 +206,18 @@ fn color<'s>(input: &mut &'s str) -> PResult<PropValue<'s>> {
 
 fn create_prop(name: &str, value: &PropValue) -> Result<StyleProp, StyleParsingError> {
     match name {
+        // BackgroundImage(Option<AssetPath<'static>>),
         "background_color" => Ok(StyleProp::BackgroundColor(value.coerce()?)),
         "border_color" => Ok(StyleProp::BorderColor(value.coerce()?)),
         "color" => Ok(StyleProp::Color(value.coerce()?)),
+        "z_index" => Ok(StyleProp::ZIndex(value.coerce()?)),
+
         "display" => Ok(StyleProp::Display(value.coerce()?)),
         "position_type" => Ok(StyleProp::Position(value.coerce()?)),
-
+        "overflow" => Ok(StyleProp::Overflow(value.coerce()?)),
+        "overflow_x" => Ok(StyleProp::OverflowX(value.coerce()?)),
+        "overflow_y" => Ok(StyleProp::OverflowY(value.coerce()?)),
+        // Direction(ui::Direction),
         "left" => Ok(StyleProp::Left(value.coerce()?)),
         "right" => Ok(StyleProp::Right(value.coerce()?)),
         "top" => Ok(StyleProp::Top(value.coerce()?)),
@@ -243,6 +249,8 @@ fn create_prop(name: &str, value: &PropValue) -> Result<StyleProp, StyleParsingE
         "margin_bottom" => Ok(StyleProp::MarginBottom(value.coerce()?)),
 
         "flex_direction" => Ok(StyleProp::FlexDirection(value.coerce()?)),
+        // FlexGrow(f32),
+        // FlexShrink(f32),
         "flex_basis" => Ok(StyleProp::FlexBasis(value.coerce()?)),
         "row_gap" => Ok(StyleProp::RowGap(value.coerce()?)),
         "column_gap" => Ok(StyleProp::ColumnGap(value.coerce()?)),
@@ -256,6 +264,45 @@ fn create_prop(name: &str, value: &PropValue) -> Result<StyleProp, StyleParsingE
         "justify_content" => Ok(StyleProp::JustifyContent(value.coerce()?)),
         "justify_self" => Ok(StyleProp::JustifySelf(value.coerce()?)),
 
+        // GridAutoFlow(ui::GridAutoFlow),
+        // GridTemplateRows(Vec<ui::RepeatedGridTrack>),
+        // GridTemplateColumns(Vec<ui::RepeatedGridTrack>),
+        // GridAutoRows(Vec<ui::GridTrack>),
+        // GridAutoColumns(Vec<ui::GridTrack>),
+        // GridRow(ui::GridPlacement),
+        // GridRowStart(i16),
+        // GridRowSpan(u16),
+        // GridRowEnd(i16),
+        // GridColumn(ui::GridPlacement),
+        // GridColumnStart(i16),
+        // GridColumnSpan(u16),
+        // GridColumnEnd(i16),
+
+        // PointerEvents(PointerEvents),
+
+        // // Text
+        // Font(Option<AssetPath<'static>>),
+        // FontSize(f32),
+
+        // // Outlines
+        // OutlineColor(Option<Color>),
+        // OutlineWidth(ui::Val),
+        // OutlineOffset(ui::Val),
+
+        // // TODO: Future planned features
+        // Cursor(Cursor),
+        // CursorImage(AssetPath<'static>),
+        // CursorOffset(IVec2),
+
+        // // Transforms
+        // Scale(f32),
+        // ScaleX(f32),
+        // ScaleY(f32),
+        // Rotation(f32),
+        // Translation(Vec3),
+
+        // // Transitions
+        // Transition(Vec<Transition>),
         _ => Err(StyleParsingError::InvalidPropertyName(name.to_owned())),
     }
 }
@@ -430,6 +477,21 @@ impl<'s> CoercePropValue<ui::UiRect> for PropValue<'s> {
     }
 }
 
+impl<'s> CoercePropValue<ui::ZIndex> for PropValue<'s> {
+    fn coerce(&self) -> Result<ui::ZIndex, StyleParsingError> {
+        match self {
+            PropValue::Number(n) => Ok(ui::ZIndex::Local(*n as i32)),
+            PropValue::Ident(id) => Err(StyleParsingError::InvalidPropertyValue(format!(
+                "\"{}\"",
+                id
+            ))),
+            _ => Err(StyleParsingError::InvalidPropertyType(
+                PropValue::type_name(self),
+            )),
+        }
+    }
+}
+
 impl<'s> CoercePropValue<ui::Display> for PropValue<'s> {
     fn coerce(&self) -> Result<ui::Display, StyleParsingError> {
         match self {
@@ -452,6 +514,22 @@ impl<'s> CoercePropValue<ui::PositionType> for PropValue<'s> {
         match self {
             PropValue::Ident("relative") => Ok(ui::PositionType::Relative),
             PropValue::Ident("absolute") => Ok(ui::PositionType::Absolute),
+            PropValue::Ident(id) => Err(StyleParsingError::InvalidPropertyValue(format!(
+                "\"{}\"",
+                id
+            ))),
+            _ => Err(StyleParsingError::InvalidPropertyType(
+                PropValue::type_name(self),
+            )),
+        }
+    }
+}
+
+impl<'s> CoercePropValue<ui::OverflowAxis> for PropValue<'s> {
+    fn coerce(&self) -> Result<ui::OverflowAxis, StyleParsingError> {
+        match self {
+            PropValue::Ident("clip") => Ok(ui::OverflowAxis::Clip),
+            PropValue::Ident("visible") => Ok(ui::OverflowAxis::Visible),
             PropValue::Ident(id) => Err(StyleParsingError::InvalidPropertyValue(format!(
                 "\"{}\"",
                 id

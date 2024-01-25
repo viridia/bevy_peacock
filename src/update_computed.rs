@@ -264,19 +264,19 @@ impl Command for UpdateComputedStyle {
 
         // Update Z-Index
         match (self.computed.z_index, e.get::<ZIndex>()) {
-            // Don't change if value is the same
-            (Some(ZIndex::Local(zi)), Some(ZIndex::Local(zo))) if zi == *zo => {}
-            (Some(ZIndex::Global(zi)), Some(ZIndex::Global(zo))) if zi == *zo => {}
-            (Some(zi), Some(_)) => {
-                e.insert(zi);
+            // Don't change if value is the same. Also, local(0) is the same as not at all.
+            (ZIndex::Local(zi), Some(ZIndex::Local(zo))) if zi != 0 && zi == *zo => {}
+            (ZIndex::Global(zi), Some(ZIndex::Global(zo))) if zi == *zo => {}
+            (ZIndex::Local(zi), Some(_)) if zi != 0 => {
+                e.insert(ZIndex::Local(zi));
             }
-            (None, Some(_)) => {
+            (ZIndex::Global(zi), Some(_)) => {
+                e.insert(ZIndex::Global(zi));
+            }
+            (_, Some(_)) => {
                 e.remove::<ZIndex>();
             }
-            (Some(zi), None) => {
-                e.insert(zi);
-            }
-            (None, None) => {}
+            (_, None) => {}
         }
 
         UpdateComputedStyle::update_picking(self.computed.pickable, &mut e);

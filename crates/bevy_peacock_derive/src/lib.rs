@@ -166,7 +166,10 @@ impl ToSrc for StyleProp {
                     StyleProp::Color(#color)
                 }
             }
-            StyleProp::ZIndex(_) => todo!(),
+            StyleProp::ZIndex(z) => {
+                let z = z.to_src();
+                quote! {StyleProp::ZIndex(#z)}
+            }
             StyleProp::Display(disp) => {
                 let disp = disp.to_src();
                 quote! {StyleProp::Display(#disp)}
@@ -175,10 +178,19 @@ impl ToSrc for StyleProp {
                 let pos = pos.to_src();
                 quote! {StyleProp::Position(#pos)}
             }
-            StyleProp::Overflow(_) => todo!(),
-            StyleProp::OverflowX(_) => todo!(),
-            StyleProp::OverflowY(_) => todo!(),
-            StyleProp::Direction(_) => todo!(),
+            StyleProp::Overflow(ov) => {
+                let ov = ov.to_src();
+                quote! {StyleProp::Overflow(#ov)}
+            }
+            StyleProp::OverflowX(ov) => {
+                let ov = ov.to_src();
+                quote! {StyleProp::OverflowX(#ov)}
+            }
+            StyleProp::OverflowY(ov) => {
+                let ov = ov.to_src();
+                quote! {StyleProp::OverflowY(#ov)}
+            }
+            StyleProp::Direction(_) => todo!("direction"),
             StyleProp::Left(length) => {
                 let length = length.to_src();
                 quote! {StyleProp::Left(#length)}
@@ -443,6 +455,15 @@ impl ToSrc for ui::UiRect {
     }
 }
 
+impl ToSrc for ui::ZIndex {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        match self {
+            ui::ZIndex::Local(n) => quote! {ui::ZIndex::Local(#n)},
+            ui::ZIndex::Global(n) => quote! {ui::ZIndex::Global(#n)},
+        }
+    }
+}
+
 impl ToSrc for ui::Display {
     fn to_src(&self) -> proc_macro2::TokenStream {
         match self {
@@ -458,6 +479,15 @@ impl ToSrc for ui::PositionType {
         match self {
             ui::PositionType::Relative => quote! {ui::PositionType::Relative},
             ui::PositionType::Absolute => quote! {ui::PositionType::Absolute},
+        }
+    }
+}
+
+impl ToSrc for ui::OverflowAxis {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        match self {
+            ui::OverflowAxis::Clip => quote! {ui::OverflowAxis::Clip},
+            ui::OverflowAxis::Visible => quote! {ui::OverflowAxis::Visible},
         }
     }
 }

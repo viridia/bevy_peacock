@@ -26,7 +26,7 @@ pub struct ComputedStyle {
     pub outline_color: Option<Color>,
     pub outline_width: Val,
     pub outline_offset: Val,
-    pub z_index: Option<ZIndex>,
+    pub z_index: ZIndex,
 
     // Transform properties
     pub scale_x: Option<f32>,
