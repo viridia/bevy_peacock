@@ -147,7 +147,12 @@ impl ToSrc for StyleProp {
     fn to_src(&self) -> proc_macro2::TokenStream {
         // println!("StyleProp: {:?}", self);
         match self {
-            StyleProp::BackgroundImage(_) => todo!(),
+            StyleProp::BackgroundImage(path) => {
+                let path = path.to_src();
+                quote! {
+                    StyleProp::BackgroundImage(#path)
+                }
+            }
             StyleProp::BackgroundColor(color) => {
                 let color = color.to_src();
                 quote! {
@@ -190,7 +195,10 @@ impl ToSrc for StyleProp {
                 let ov = ov.to_src();
                 quote! {StyleProp::OverflowY(#ov)}
             }
-            StyleProp::Direction(_) => todo!("direction"),
+            StyleProp::Direction(dir) => {
+                let dir = dir.to_src();
+                quote! {StyleProp::Direction(#dir)}
+            }
             StyleProp::Left(length) => {
                 let length = length.to_src();
                 quote! {StyleProp::Left(#length)}
@@ -230,6 +238,10 @@ impl ToSrc for StyleProp {
             StyleProp::MaxHeight(length) => {
                 let length = length.to_src();
                 quote! {StyleProp::MaxHeight(#length)}
+            }
+            StyleProp::AspectRatio(r) => {
+                let r = r.to_src();
+                quote! {StyleProp::AspectRatio(#r)}
             }
             StyleProp::Margin(length) => {
                 let length = length.to_src();
@@ -295,9 +307,16 @@ impl ToSrc for StyleProp {
                 let dir = dir.to_src();
                 quote! {StyleProp::FlexDirection(#dir)}
             }
-            StyleProp::FlexWrap(_) => todo!(),
-            StyleProp::FlexGrow(_) => todo!(),
-            StyleProp::FlexShrink(_) => todo!(),
+            StyleProp::FlexWrap(wrap) => {
+                let wrap = wrap.to_src();
+                quote! {StyleProp::FlexWrap(#wrap)}
+            }
+            StyleProp::FlexGrow(value) => {
+                quote! {StyleProp::FlexGrow(#value)}
+            }
+            StyleProp::FlexShrink(value) => {
+                quote! {StyleProp::FlexShrink(#value)}
+            }
             StyleProp::FlexBasis(length) => {
                 let length = length.to_src();
                 quote! {StyleProp::FlexBasis(#length)}
@@ -338,23 +357,50 @@ impl ToSrc for StyleProp {
                 let value = value.to_src();
                 quote! {StyleProp::JustifyContent(#value)}
             }
-            StyleProp::GridAutoFlow(_) => todo!(),
+            StyleProp::GridAutoFlow(value) => {
+                let value = value.to_src();
+                quote! {StyleProp::GridAutoFlow(#value)}
+            }
             StyleProp::GridTemplateRows(_) => todo!(),
             StyleProp::GridTemplateColumns(_) => todo!(),
             StyleProp::GridAutoRows(_) => todo!(),
             StyleProp::GridAutoColumns(_) => todo!(),
             StyleProp::GridRow(_) => todo!(),
-            StyleProp::GridRowStart(_) => todo!(),
-            StyleProp::GridRowSpan(_) => todo!(),
-            StyleProp::GridRowEnd(_) => todo!(),
+            StyleProp::GridRowStart(value) => {
+                quote! {StyleProp::GridRowStart(#value)}
+            }
+            StyleProp::GridRowSpan(value) => {
+                quote! {StyleProp::GridRowSpan(#value)}
+            }
+            StyleProp::GridRowEnd(value) => {
+                quote! {StyleProp::GridRowEnd(#value)}
+            }
             StyleProp::GridColumn(_) => todo!(),
-            StyleProp::GridColumnStart(_) => todo!(),
-            StyleProp::GridColumnSpan(_) => todo!(),
-            StyleProp::GridColumnEnd(_) => todo!(),
+            StyleProp::GridColumnStart(value) => {
+                quote! {StyleProp::GridColumnStart(#value)}
+            }
+            StyleProp::GridColumnSpan(value) => {
+                quote! {StyleProp::GridColumnSpan(#value)}
+            }
+            StyleProp::GridColumnEnd(value) => {
+                quote! {StyleProp::GridColumnEnd(#value)}
+            }
             StyleProp::PointerEvents(_) => todo!(),
-            StyleProp::Font(_) => todo!(),
-            StyleProp::FontSize(_) => todo!(),
-            StyleProp::OutlineColor(_) => todo!(),
+            StyleProp::Font(path) => {
+                let path = path.to_src();
+                quote! {
+                    StyleProp::Font(#path)
+                }
+            }
+            StyleProp::FontSize(value) => {
+                quote! {StyleProp::FontSize(#value)}
+            }
+            StyleProp::OutlineColor(color) => {
+                let color = color.to_src();
+                quote! {
+                    StyleProp::OutlineColor(#color)
+                }
+            }
             StyleProp::OutlineWidth(length) => {
                 let length = length.to_src();
                 quote! {StyleProp::OutlineWidth(#length)}
@@ -366,10 +412,18 @@ impl ToSrc for StyleProp {
             StyleProp::Cursor(_) => todo!(),
             StyleProp::CursorImage(_) => todo!(),
             StyleProp::CursorOffset(_) => todo!(),
-            StyleProp::Scale(_) => todo!(),
-            StyleProp::ScaleX(_) => todo!(),
-            StyleProp::ScaleY(_) => todo!(),
-            StyleProp::Rotation(_) => todo!(),
+            StyleProp::Scale(value) => {
+                quote! {StyleProp::Scale(#value)}
+            }
+            StyleProp::ScaleX(value) => {
+                quote! {StyleProp::ScaleX(#value)}
+            }
+            StyleProp::ScaleY(value) => {
+                quote! {StyleProp::ScaleY(#value)}
+            }
+            StyleProp::Rotation(value) => {
+                quote! {StyleProp::Rotation(#value)}
+            }
             StyleProp::Translation(_) => todo!(),
             StyleProp::Transition(_) => todo!(),
         }
@@ -388,6 +442,12 @@ where
             }
             None => quote! { None },
         }
+    }
+}
+
+impl ToSrc for f32 {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        quote! { #self }
     }
 }
 
@@ -427,6 +487,13 @@ impl ToSrc for Color {
                 Color::lcha(#lightness, #chroma, #hue, #alpha)
             },
         }
+    }
+}
+
+impl ToSrc for bevy::asset::AssetPath<'static> {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        let path = self.path().to_str();
+        quote! {bevy::asset::AssetPath::from(#path)}
     }
 }
 
@@ -492,6 +559,16 @@ impl ToSrc for ui::OverflowAxis {
     }
 }
 
+impl ToSrc for ui::Direction {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        match self {
+            ui::Direction::Inherit => quote! {ui::Direction::Inherit},
+            ui::Direction::LeftToRight => quote! {ui::Direction::LeftToRight},
+            ui::Direction::RightToLeft => quote! {ui::Direction::RightToLeft},
+        }
+    }
+}
+
 impl ToSrc for ui::FlexDirection {
     fn to_src(&self) -> proc_macro2::TokenStream {
         match self {
@@ -499,6 +576,16 @@ impl ToSrc for ui::FlexDirection {
             ui::FlexDirection::RowReverse => quote! {ui::FlexDirection::RowReverse},
             ui::FlexDirection::Column => quote! {ui::FlexDirection::Column},
             ui::FlexDirection::ColumnReverse => quote! {ui::FlexDirection::ColumnReverse},
+        }
+    }
+}
+
+impl ToSrc for ui::FlexWrap {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        match self {
+            ui::FlexWrap::Wrap => quote! {ui::FlexWrap::Wrap},
+            ui::FlexWrap::WrapReverse => quote! {ui::FlexWrap::WrapReverse},
+            ui::FlexWrap::NoWrap => quote! {ui::FlexWrap::NoWrap},
         }
     }
 }
@@ -589,6 +676,17 @@ impl ToSrc for ui::JustifySelf {
             ui::JustifySelf::Center => quote! {ui::JustifySelf::Center},
             ui::JustifySelf::Baseline => quote! {ui::JustifySelf::Baseline},
             ui::JustifySelf::Stretch => quote! {ui::JustifySelf::Stretch},
+        }
+    }
+}
+
+impl ToSrc for ui::GridAutoFlow {
+    fn to_src(&self) -> proc_macro2::TokenStream {
+        match self {
+            ui::GridAutoFlow::Row => quote! {ui::GridAutoFlow::Row},
+            ui::GridAutoFlow::RowDense => quote! {ui::GridAutoFlow::RowDense},
+            ui::GridAutoFlow::Column => quote! {ui::GridAutoFlow::Column},
+            ui::GridAutoFlow::ColumnDense => quote! {ui::GridAutoFlow::ColumnDense},
         }
     }
 }

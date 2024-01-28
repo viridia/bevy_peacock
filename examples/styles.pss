@@ -27,12 +27,20 @@ BUTTON {
     border_color: #00ffff;
     flex_direction: row;
     height: 32;
-    padding: 0 12;
+    padding: 12 0;
     align_items: center;
 
     :hover {
         background_color: #ff0;
     }
+}
+
+IMAGE {
+    background_image: "image.png";
+    background_color: #fff;
+    border: 3;
+    border_color: #ffffff;
+    align_self: stretch;
 }
 
 MAIN {

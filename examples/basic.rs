@@ -49,6 +49,9 @@ fn setup_view_root(mut commands: Commands) {
                         .with_children(|parent| {
                             parent.spawn(TextBundle::from_section("Button3", TextStyle::default()));
                         });
+                    parent
+                        .spawn(NodeBundle::default())
+                        .with_styles(test_styles::IMAGE.clone());
                 });
 
             parent

@@ -111,6 +111,29 @@ impl<H: LengthParam, V: LengthParam> UiRectParam for (H, V) {
     }
 }
 
+/// Trait that represents am optional float
+pub trait OptFloatParam {
+    fn to_val(self) -> Option<f32>;
+}
+
+impl OptFloatParam for Option<f32> {
+    fn to_val(self) -> Option<f32> {
+        self
+    }
+}
+
+impl OptFloatParam for f32 {
+    fn to_val(self) -> Option<f32> {
+        Some(self)
+    }
+}
+
+impl OptFloatParam for i32 {
+    fn to_val(self) -> Option<f32> {
+        Some(self as f32)
+    }
+}
+
 #[derive(Default)]
 pub struct StyleBuilder {
     pub(crate) props: Vec<StyleProp>,
@@ -223,7 +246,10 @@ impl StyleBuilder {
         self
     }
 
-    // pub aspect_ratio: StyleProp<f32>,
+    pub fn aspect_ratio(&mut self, length: impl OptFloatParam) -> &mut Self {
+        self.props.push(StyleProp::AspectRatio(length.to_val()));
+        self
+    }
 
     pub fn margin(&mut self, rect: impl UiRectParam) -> &mut Self {
         self.props.push(StyleProp::Margin(rect.to_uirect()));

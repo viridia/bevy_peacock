@@ -48,7 +48,7 @@ pub enum StyleProp {
     MinHeight(ui::Val),
     MaxWidth(ui::Val),
     MaxHeight(ui::Val),
-    // // pub aspect_ratio: StyleProp<f32>,
+    AspectRatio(Option<f32>),
 
     // Allow margin sides to be set individually
     Margin(ui::UiRect),
@@ -294,6 +294,11 @@ impl StylePropList {
                 StyleProp::MaxHeight(expr) => {
                     computed.style.max_height = *expr;
                 }
+                StyleProp::AspectRatio(expr) => {
+                    computed.style.aspect_ratio = *expr;
+                }
+
+                // Margins
                 StyleProp::Margin(expr) => {
                     computed.style.margin = *expr;
                 }
@@ -309,6 +314,8 @@ impl StylePropList {
                 StyleProp::MarginBottom(expr) => {
                     computed.style.margin.bottom = *expr;
                 }
+
+                // Padding
                 StyleProp::Padding(expr) => {
                     computed.style.padding = *expr;
                 }
@@ -324,6 +331,8 @@ impl StylePropList {
                 StyleProp::PaddingBottom(expr) => {
                     computed.style.padding.bottom = *expr;
                 }
+
+                // Border
                 StyleProp::Border(expr) => {
                     computed.style.border = *expr;
                 }
@@ -339,6 +348,8 @@ impl StylePropList {
                 StyleProp::BorderBottom(expr) => {
                     computed.style.border.bottom = *expr;
                 }
+
+                // Flex
                 StyleProp::FlexDirection(expr) => {
                     computed.style.flex_direction = *expr;
                 }
@@ -365,6 +376,7 @@ impl StylePropList {
                     computed.style.row_gap = *expr;
                 }
 
+                // Align
                 StyleProp::AlignItems(expr) => {
                     computed.style.align_items = *expr;
                 }
@@ -384,64 +396,54 @@ impl StylePropList {
                     computed.style.justify_content = *expr;
                 }
 
+                // Grid
                 StyleProp::GridAutoFlow(expr) => {
                     computed.style.grid_auto_flow = *expr;
                 }
-
                 StyleProp::GridTemplateRows(expr) => {
                     computed.style.grid_template_rows.clone_from(expr);
                 }
-
                 StyleProp::GridTemplateColumns(expr) => {
                     computed.style.grid_template_columns.clone_from(expr);
                 }
-
                 StyleProp::GridAutoRows(expr) => {
                     computed.style.grid_auto_rows.clone_from(expr);
                 }
-
                 StyleProp::GridAutoColumns(expr) => {
                     computed.style.grid_auto_columns.clone_from(expr);
                 }
-
                 StyleProp::GridRow(expr) => {
                     computed.style.grid_row = *expr;
                 }
                 StyleProp::GridRowStart(expr) => {
                     computed.style.grid_row.set_start(*expr);
                 }
-
                 StyleProp::GridRowSpan(expr) => {
                     computed.style.grid_row.set_span(*expr);
                 }
-
                 StyleProp::GridRowEnd(expr) => {
                     computed.style.grid_row.set_end(*expr);
                 }
-
                 StyleProp::GridColumn(expr) => {
                     computed.style.grid_column = *expr;
                 }
                 StyleProp::GridColumnStart(expr) => {
                     computed.style.grid_column.set_start(*expr);
                 }
-
                 StyleProp::GridColumnSpan(expr) => {
                     computed.style.grid_column.set_span(*expr);
                 }
-
                 StyleProp::GridColumnEnd(expr) => {
                     computed.style.grid_column.set_end(*expr);
                 }
 
+                // Outline
                 StyleProp::OutlineColor(expr) => {
                     computed.outline_color = *expr;
                 }
-
                 StyleProp::OutlineWidth(expr) => {
                     computed.outline_width = *expr;
                 }
-
                 StyleProp::OutlineOffset(expr) => {
                     computed.outline_offset = *expr;
                 }
